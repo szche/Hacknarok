@@ -1,3 +1,6 @@
+import math
+import time
+
 class Location(object):
     def __init__(self, id, name, address, size):
         self.id = id
@@ -7,6 +10,9 @@ class Location(object):
         self.queue = []
         self.wait_time = 0
         self.inside = []
+        self.times = {}
+        self.client_count = 0
+        self.time_all_clients = 0
 
     def __str__(self):
         return f'-----\nLokacja: {self.id}\nNazwa: {self.name}\nAdres: {self.address}\nRozmiar: {self.size}\nKolejka: {self.queue}\nW kolejce: {self.get_queue_size()}\n-----'
@@ -36,19 +42,28 @@ class Location(object):
             return True
             
     def went_inside(self, customer):
-        if customer not in self.inside or customer not in self.queue:
+        if customer not in self.queue:
             print("Not in queue and not inside")
             return False
         self.inside.append(customer)
         self.queue.remove(customer)
+        self.times[customer] = time.time()
         return True
 
     def left(self, customer):
-        if customer not in self.inside or customer not in self.queue:
+        if customer not in self.inside:
             print("Not in queue and not inside")
             return False
         self.inside.remove(customer)
+        self.client_count += 1
+        self.time_all_clients += time.time() - self.times[customer]
         return True
+
+    def estimated_time_wait(self):
+        if self.client_count:
+            return int(math.ceil((self.get_queue_size()+1) * int(math.ceil(self.time_all_clients/self.client_count)/60)))
+        else:
+            return "TBE"
 
 class DB(object):
     def __init__(self):
@@ -92,26 +107,12 @@ class DB(object):
 if __name__ == "__main__":
     db = DB()
     db.add_location(123123, 'abc', 'ul', 120)
-    db.add_location(123123, 'abc', 'ul', 120)
-    db.add_location(1, 'xyz', 'al', 1000)
+
+    location = db.get_location(123123)
+
     
-    print(db.get_location(123123))
-    print(db.get_location(1))
 
-    customer_1 = Customer(1)
-    customer_2 = Customer(2)
-    customer_3 = Customer(3)
 
-    db.get_location(123123).add_to_queue(customer_1)
-    db.get_location(123123).add_to_queue(customer_3)
-    db.get_location(123123).add_to_queue(customer_2)
-
-    print(db.get_location(1))
-    print(db.get_location(123123))
-
-    print(db.queue_index(customer_1.customerID))
-    print(db.queue_index(customer_2.customerID))
-    print(db.queue_index(customer_3.customerID))
 
 
     
