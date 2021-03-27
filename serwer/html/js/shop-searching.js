@@ -1,15 +1,3 @@
-console.log("Test");
-
-var shop_name = undefined;
-
-function move_to_add_to_queue(){
-    
-    console.log($(this).text());
-    console.log(move_to_add_to_queue);
-    
-}
-
-
 
 
 $(document).ready(function(){
