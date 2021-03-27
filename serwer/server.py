@@ -16,7 +16,24 @@ class Serv(BaseHTTPRequestHandler):
             self.send_header("Content-type", "text/html")
             self.end_headers()
             self.wfile.write(bytes(data, "utf-8"))
+            return        
+
+        if self.path == '/shop_list.html':
+            data = open('html'+self.path).read()
+            self.send_response(200)
+            self.send_header("Content-type", "text/html")
+            self.end_headers()
+            self.wfile.write(bytes(data, "utf-8"))
             return
+
+        if self.path == '/add_to_queue.html':
+            data = open('html'+self.path).read()
+            self.send_response(200)
+            self.send_header("Content-type", "text/html")
+            self.end_headers()
+            self.wfile.write(bytes(data, "utf-8"))
+            return
+
 
         # # Clear the database before new game/round
         # elif self.path.startswith('/reset'):
