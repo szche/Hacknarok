@@ -109,7 +109,10 @@ function getStatus() {
 	} else if (data[1] > 1) {
 	    $('#que-status').text(`Jesteś ${data[1]} w kolejce`);
 	} else {
-		console.log('taki szyme właśnie tu od niego wkleić')
+	    $('#que-status').html(`<h3><i class="fas fa-check-circle"></i> Miłych zakupów!</h3><br>` +
+			`Użyj tego samego kodu przy wyjściu`);
+		$('.cancel_slot').fadeOut();
+		$('#alert-div').fadeOut();
 	}
 	return data
     });
@@ -123,27 +126,6 @@ $('.cancel_slot').click(function() {
 	$('#myLargeModalLabel').modal('toggle')
     });
 });
-
-$('.toggle_enter').click(function() {
-    var request = $.ajax({
-	url: 'action',
-	method: 'GET',
-	data: {customerID: Cookies.get('id'), locationID: reserved},
-    })
-
-
-    // Kiedy zapytanie jest poprawne
-    request.done(function(data) {
-	console.log(data);
-	// TODO uzytkownik wszedl
-    });
-
-    // Blad w zapytaniu
-    request.fail(function(jqXHR, textStatus) {
-	console.log('error');
-    });
-});
-
 
 function sync() {
     fetch(`/update`).then(res => res.text()).then(data => {
