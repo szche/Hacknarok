@@ -43,7 +43,7 @@ $(document).ready(function() {
   .then(data => {
       if(data != 0) {
         statusInterval = window.setInterval(getStatus, 500);
-        $('#myLargeModalLabel').modal({backdrop: 'static', keyboard: false})  
+        $('#myLargeModalLabel').modal({backdrop: 'static', keyboard: false})
         $('#myLargeModalLabel').modal('toggle')
         reserved = data[0];
 
@@ -61,7 +61,7 @@ $(document).ready(function() {
 
   $('.reserve-slot').click(function() {
     const id = $(this).attr('point_to');
-    const name = $(`#${id} .card-title`).text();  
+    const name = $(`#${id} .card-title`).text();
     reserved = id;
     var request = $.ajax({
       url: "reserve",
@@ -85,10 +85,10 @@ $(document).ready(function() {
   request.fail(function( jqXHR, textStatus ) {
       $("#alert-div").html('<div class="alert alert-danger" role="alert">Błąd podczas zapytania!</div>');
   });
-  $('#myLargeModalLabel').modal({backdrop: 'static', keyboard: false})  
+  $('#myLargeModalLabel').modal({backdrop: 'static', keyboard: false})
   $('#myLargeModalLabel').modal('toggle')
 
-  $('#qr-code').html('<img src="/generate" alt="kod qr" width="250px">')
+  $('#qr-code').html('<img src="/generate?locationID=${id}" alt="kod qr" width="250px">')
   });
 
 
@@ -117,7 +117,7 @@ $(".cancel_slot").click(function() {
         clearInterval(statusInterval);
         $('#myLargeModalLabel').modal('toggle')
 
-    });   
+    });
 });
 
 $(".toggle_enter").click(function() {
@@ -150,7 +150,7 @@ function sync() {
       .then(res => res.text())
       .then(data => {
           data = JSON.parse(data);
-            
+
           for(var i=0; i<data.length; i++){
             const id = data[i]['id'];
             const inside = data[i]['inside'];

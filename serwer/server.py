@@ -11,7 +11,7 @@ from inspect import getsourcefile
 import os.path as path, sys
 czytnik_dir = path.abspath(path.dirname(path.abspath(getsourcefile(lambda:0))) + '/../czytnik')
 sys.path.insert(0, czytnik_dir)
-#import gen_qr
+import gen_qr
 sys.path.pop(0)
 
 html_path = '/html'
@@ -132,14 +132,6 @@ class Serv(BaseHTTPRequestHandler):
             self.wfile.write(bytes(json.dumps(status), "utf-8"))
             return
 
-        elif self.path == '/generate':
-            cookie = self.headers.get('Cookie')
-            self.send_response(200)
-            self.send_header("Content-type", "image/svg+xml")
-            self.end_headers()
-            #gen_qr.make(cookie)._write(self.wfile)
-            return
-
         elif self.path == '/update':
             status = database.get_all()
             self.send_response(200)
@@ -163,6 +155,17 @@ class Serv(BaseHTTPRequestHandler):
                 self.send_header("Content-type", "text/html")
                 self.end_headers()
                 self.wfile.write(bytes('err', "utf-8"))
+
+
+        elif '/generate?' in self.path:
+            cookie = self.headers.get('Cookie')
+            value_key = parse_path_with_args(self.path)
+            location_id = value_key["locationID"]
+            self.send_response(200)
+            self.send_header("Content-type", "image/svg+xml")
+            self.end_headers()
+            gen_qr.make('cusomterID=' + cookie + '&' + 'locationID=' + location_id)._write(self.wfile)
+            return
 
         elif '/action?' in self.path:
             print(self.path)
@@ -203,7 +206,6 @@ class Serv(BaseHTTPRequestHandler):
             self.wfile.write(bytes(data, "utf-8"))
             return
 
-
 def test_locations(name, coords, address):
     global database
     size = random.randint(20, 1000)
@@ -211,10 +213,8 @@ def test_locations(name, coords, address):
     locationid = sha256( bytes(hash_data, encoding='utf-8') ).hexdigest()
     database.add_location(locationid, name, address, coords, int(size) )
 
-
-
 if __name__ == "__main__":
-    
+
     test_locations('Biedronka', [50.0934188, 20.0223255], 'ul. Malczewskiego 2')
     test_locations('Biedronka', [50.024036949999996, 20.90635294440421], 'ul. Wrocławska 30')
     test_locations('Biedronka', [50.0079917, 19.9588235], 'ul. Adama Mickiewicza 20')
@@ -233,7 +233,7 @@ if __name__ == "__main__":
     test_locations('Kaufland', [50.0146524, 20.02249712916703], 'ul. Miodowa 420')
     test_locations('Kaufland', [50.0899052, 20.00552454410871], 'ul. Czarnowiejska 24')
     test_locations('Kaufland', [50.084055649999996, 19.935317076583182], 'al. Ujazdowska 1')
-   
+
     test_locations('Poczta Główna', [50.0772892, 20.015808], 'ul. Stalowa 15')
     test_locations('Apteka Ziółko', [50.0651897, 19.9845491], 'ul. Wolska 17')
     test_locations('Apteka Zdrowie', [50.06875235, 19.94610034475403], 'Dworzec Zachodni')
@@ -247,15 +247,6 @@ if __name__ == "__main__":
 
     #https://www.openstreetmap.org/geocoder/search_osm_nominatim?query=kaufland+Kraków
     #https://www.openstreetmap.org/search?query=Lewiatan Kraków
-   
-
-
-    
-
-
-    
-
-  
 
     httpd = HTTPServer(('0.0.0.0', 8080), Serv)
     print("Running server on localhost:8080")

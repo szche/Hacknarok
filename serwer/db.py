@@ -114,7 +114,7 @@ if __name__ == "__main__":
     db.add_location(123123, 'abc', 'ul', 120)
     db.add_location(123123, 'abc', 'ul', 120)
     db.add_location(1, 'xyz', 'al', 1000)
-    
+
     print(db.get_location(123123))
     print(db.get_location(1))
 
@@ -134,4 +134,3 @@ if __name__ == "__main__":
     print(db.queue_index(customer_3.customerID))
 
 
-    
