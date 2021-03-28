@@ -14,14 +14,17 @@ def request(data):
 detector = cv2.QRCodeDetector()
 cap = cv2.VideoCapture(0)
 
-try: 
+try:
     while True:
         _, frame = cap.read()
         encrypted_data, _, _ = detector.detectAndDecode(frame)
-    
-        if encrypted_data:
+
+        if len(encrypted_data) != 0:
             request(aes.decrypt(encrypted_data))
-    
+            cap.release()
+            time.sleep(5)
+            cap = cv2.VideoCapture(0)
+
         time.sleep(0.5)
 
 except KeyboardInterrupt:
