@@ -20,6 +20,7 @@ database = DB()
 
 env = Environment(loader=FileSystemLoader('html'))
 
+
 def add_reservation(dane):
     global database
     dane = unquote(dane)
@@ -31,6 +32,12 @@ def add_reservation(dane):
     print("Blad podczas dodawania")
     return False
 
+locationid_counter = -1
+def get_locationid():
+    global locationid_counter
+    locationid_counter += 1
+    return str(locationid_counter)
+
 def create_location(dane):
     global database
     dane = unquote(dane)
@@ -39,9 +46,7 @@ def create_location(dane):
     address = parsed_string[2].split('&')[0].strip()
     coords = parsed_string[3].split('&')[0].strip()
     size = parsed_string[4].strip()
-    hash_data = f'{name}{address}{coords}{size}'
-    locationid = sha256( bytes(hash_data, encoding='utf-8') ).hexdigest()
-    if database.add_location(locationid, name, address, coords, int(size) ):
+    if database.add_location(get_locationid(), name, address, coords, int(size) ):
         return True
     return False
 
@@ -54,7 +59,10 @@ def parse_path_with_args(path):
         data[ el[:el.find('=')] ] = el[el.find('=')+1:]
     return data
 
-
+def get_cookies(header):
+    C = SimpleCookie()
+    C.load(header)
+    return C
 
 class Serv(BaseHTTPRequestHandler):
     global database
@@ -124,8 +132,8 @@ class Serv(BaseHTTPRequestHandler):
             return
 
         elif self.path == '/status':
-            cookie = self.headers.get('Cookie')
-            status = database.queue_index(cookie)
+            cookie = get_cookies(self.headers.get('Cookie'))
+            status = database.queue_index(cookie["id"].value)
             self.send_response(200)
             self.send_header("Content-type", "text/html")
             self.end_headers()
@@ -143,9 +151,9 @@ class Serv(BaseHTTPRequestHandler):
 
         elif self.path == '/cancel':
             print("CANCELING")
-            cookie = self.headers.get('Cookie')
-            status = database.queue_index(cookie)
-            if database.get_location(status[0]).remove_from_queue(cookie):
+            cookie = get_cookies(self.headers.get('Cookie'))
+            status = database.queue_index(cookie["id"].value)
+            if database.get_location(status[0]).remove_from_queue(cookie["id"].value):
                 self.send_response(200)
                 self.send_header("Content-type", "text/html")
                 self.end_headers()
@@ -158,13 +166,10 @@ class Serv(BaseHTTPRequestHandler):
 
 
         elif '/generate?' in self.path:
-            cookie = self.headers.get('Cookie')
-            value_key = parse_path_with_args(self.path)
-            location_id = value_key["locationID"]
             self.send_response(200)
             self.send_header("Content-type", "image/svg+xml")
             self.end_headers()
-            gen_qr.make('cusomterID=' + cookie + '&' + 'locationID=' + location_id)._write(self.wfile)
+            gen_qr.make(self.path[len('/generate?'):])._write(self.wfile)
             return
 
         elif '/action?' in self.path:
@@ -172,10 +177,11 @@ class Serv(BaseHTTPRequestHandler):
             #handle request from scanner
             #request pattenr: action?locati on_id=1&client_id=1&direction=out
             value_key = parse_path_with_args(self.path)
+            customer_id = value_key["customerID"]
             location_id = value_key["locationID"]
-            customer_id = value_key["cusomterID"]
             location = database.get_location(location_id)
             if location.switch_user(customer_id):
+                print('action', location_id, customer_id)
                 self.send_response(200)
                 self.send_header("Content-type", "text/html")
                 self.end_headers()
@@ -208,10 +214,8 @@ class Serv(BaseHTTPRequestHandler):
 
 def test_locations(name, coords, address):
     global database
-    size = random.randint(20, 1000)
-    hash_data = f'{name}{address}{coords}{size}'
-    locationid = sha256( bytes(hash_data, encoding='utf-8') ).hexdigest()
-    database.add_location(locationid, name, address, coords, int(size) )
+    size = random.randint(10, 1000)
+    database.add_location(get_locationid(), name, address, coords, int(size))
 
 if __name__ == "__main__":
 
